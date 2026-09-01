@@ -1,0 +1,16 @@
+{
+  "name": "TaxMate — UK Tax Estimator",
+  "short_name": "TaxMate",
+  "description": "Estimate UK tax for sole traders, limited companies and investments (2026/27), with live currency conversion and pension planning.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0BA678",
+  "theme_color": "#0BA678",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-1024.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any" }
+  ]
+}
