@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Taxify — UK Tax Estimator & Payment Hub</title>
+<meta name="description" content="Estimate UK tax for sole traders and limited companies (2026/27) and generate a payment link for your outstanding balance." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230BA678'/%3E%3Cpath d='M9 21V11l7 6 7-6v10' fill='none' stroke='%23fff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#0BA678" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+</head>
+<body>
+<header class="site">
+  <div class="wrap header-row">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <rect width="32" height="32" rx="7" fill="var(--accent)"/>
+        <path d="M9 21V11l7 6 7-6v10" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="brand-name">Taxify</span>
+    </div>
+    <div class="header-right">
+      <div class="lang-wrap">
+        <span class="lang-globe" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+        </span>
+        <select id="langSelect" class="lang-select" data-i18n-aria="langLabel" aria-label="Choose language"></select>
+      </div>
+      <span class="badge" data-i18n="taxYear">Tax year 2026/27</span>
+      <button class="theme-btn" id="themeBtn" data-i18n-aria="toggleTheme" aria-label="Toggle theme">
+        <svg id="themeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <h1 data-i18n="heroTitle">Estimate your UK tax and settle the balance in one place.</h1>
+    <p class="sub" data-i18n="heroSub">Enter your income and TaxMate calculates income tax, National Insurance and Corporation Tax for 2026/27, applies every allowance you're entitled to, then hands you a payment link for the outstanding balance.</p>
+  </section>
+
+  <div class="disclaimer">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <span data-i18n-html="disclaimer">Estimate only — not tax advice. Figures use 2026/27 rates for England, Wales and Northern Ireland. Excludes VAT, student loans, payments on account, dividends, Scottish bands and capital allowances. Always confirm with HMRC or a qualified accountant before paying.</span>
+  </div>
+
+  <div class="grid">
+    <!-- INPUTS -->
+    <section class="panel panel-pad">
+      <h2 data-i18n="yourFigures">Your figures</h2>
+
+      <!-- On-device tax profile (account) -->
+      <div class="profile-card">
+        <div class="profile-head">
+          <h3 data-i18n="profileTitle">Your tax profile</h3>
+          <span class="profile-tag" data-i18n="profileTag">On this device</span>
+        </div>
+        <div class="profile-grid">
+          <div class="field">
+            <label for="name-input"><span data-i18n="profileName">Your name</span> <span class="hint" data-i18n="profileNameHint">— optional</span></label>
+            <input type="text" id="name-input" placeholder="e.g. Alex" autocomplete="name" />
+          </div>
+          <div class="field">
+            <label for="utr-input"><span data-i18n="profileUtr">UTR</span> <span class="hint" data-i18n="profileUtrHint">— 10 digits, from your HMRC letter</span></label>
+            <input type="text" id="utr-input" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" placeholder="1234567890" autocomplete="off" />
+          </div>
+          <div class="field">
+            <label for="taxcode-input"><span data-i18n="profileTaxCode">Tax code</span> <span class="hint" data-i18n="profileTaxCodeHint">— e.g. 1257L</span></label>
+            <input type="text" id="taxcode-input" placeholder="1257L" autocomplete="off" />
+          </div>
+          <div class="field">
+            <label for="vatno-input"><span data-i18n="profileVatNo">VAT number</span> <span class="hint" data-i18n="profileVatNoHint">optional, 9 digits after GB</span></label>
+            <input type="text" id="vatno-input" placeholder="GB123456789" autocomplete="off" />
+          </div>
+        </div>
+        <div class="profile-actions">
+          <button type="button" class="btn ghost" id="saveProfile" data-i18n="saveProfile">Save profile</button>
+          <span class="profile-status" id="profileStatus"></span>
+        </div>
+        <div class="profile-note" id="profileNote"></div>
+      </div>
+
+      <!-- Convert foreign income to GBP (live ECB rates) -->
+      <div class="fx-top">
+        <div class="fx-top-head">
+          <h3 data-i18n="fxTitle">Convert foreign income to GBP</h3>
+          <span class="fx-meta" id="fx-meta" data-i18n="fxLoading">Loading live rates…</span>
+        </div>
+        <div class="fx-row">
+          <input type="number" id="fx-amount" value="1000" min="0" step="50" inputmode="numeric" data-i18n-aria="fxAmountAria" aria-label="Amount to convert" />
+          <select id="fx-from" data-i18n-aria="fxFromAria" aria-label="From currency"></select>
+          <span class="fx-arrow">→</span>
+          <div class="fx-gbp"><span class="pre">£</span><span id="fx-result">0.00</span></div>
+        </div>
+        <button type="button" class="btn ghost" id="fx-use" data-i18n="fxUseSole">Use as my income</button>
+      </div>
+
+      <div class="seg" role="tablist" aria-label="Business type">
+        <button id="tab-sole" class="active" role="tab" aria-selected="true" data-i18n="tabSole">Sole trader</button>
+        <button id="tab-ltd" role="tab" aria-selected="false" data-i18n="tabLtd">Limited company</button>
+        <button id="tab-inv" role="tab" aria-selected="false" data-i18n="tabInv">Investments &amp; CGT</button>
+      </div>
+
+      <!-- Sole trader fields -->
+      <div id="fields-sole">
+        <div class="field">
+          <label for="income-sole"><span data-i18n="incomeSole">Annual turnover / income</span> <span class="hint" data-i18n="incomeSoleHint">— gross self-employment income</span></label>
+          <div class="input-wrap"><span class="pre">£</span><input type="number" id="income-sole" min="0" step="100" placeholder="60,000" inputmode="numeric" /></div>
+        </div>
+        <div class="field">
+          <label><span data-i18n="expensesLabel">Allowable expenses</span> <span class="hint" data-i18n="expensesHintSole">— list items; the total is compared to the £1,000 trading allowance</span></label>
+          <div class="exp-table">
+            <div class="exp-rows" id="exp-rows-sole"></div>
+            <button type="button" class="exp-add" id="exp-add-sole" data-i18n="addExpense">+ Add expense</button>
+            <div class="exp-foot">
+              <span class="exp-total-label" data-i18n="totalExpenses">Total expenses</span>
+              <span class="exp-total-val" id="exp-total-sole">£0.00</span>
+            </div>
+            <div class="exp-status" id="exp-status-sole"></div>
+          </div>
+        </div>
+        <div class="rec-hint" id="ta-hint"></div>
+        <div class="switch-row">
+          <div class="txt">
+            <b data-i18n="taToggle">Use £1,000 trading allowance</b>
+            <span data-i18n="taToggleSub">Replaces expense deduction. Usually better when expenses are under £1,000.</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="use-ta" />
+            <span class="track"><span class="thumb"></span></span>
+          </label>
+        </div>
+        <div class="field" style="margin-top:6px">
+          <label for="paid-sole" data-i18n="paidSole">Tax already paid this year</label>
+          <div class="input-wrap"><span class="pre">£</span><input type="number" id="paid-sole" min="0" step="100" placeholder="0" inputmode="numeric" /></div>
+        </div>
+      </div>
+
+      <!-- Limited company fields -->
+      <div id="fields-ltd" style="display:none">
+        <div class="field">
+          <label for="revenue-ltd"><span data-i18n="revenueLtd">Company revenue</span> <span class="hint" data-i18n="revenueLtdHint">— gross sales / turnover</span></label>
+          <div class="input-wrap"><span class="pre">£</span><input type="number" id="revenue-ltd" min="0" step="100" placeholder="120,000" inputmode="numeric" /></div>
+        </div>
+        <div class="field">
+          <label><span data-i18n="expensesLabel">Allowable expenses</span> <span class="hint" data-i18n="expensesHintLtd">— list items; the total reduces taxable profit</span></label>
+          <div class="exp-table">
+            <div class="exp-rows" id="exp-rows-ltd"></div>
+            <button type="button" class="exp-add" id="exp-add-ltd" data-i18n="addExpense">+ Add expense</button>
+            <div class="exp-foot">
+              <span class="exp-total-label" data-i18n="totalExpenses">Total expenses</span>
+              <span class="exp-total-val" id="exp-total-ltd">£0.00</span>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="paid-ltd" data-i18n="paidLtd">Corporation Tax already paid</label>
+          <div class="input-wrap"><span class="pre">£</span><input type="number" id="paid-ltd" min="0" step="100" placeholder="0" inputmode="numeric" /></div>
+        </div>
+      </div>
+
+      <!-- Investments & CGT fields -->
+      <div id="fields-inv" style="display:none">
+        <div class="field">
+          <label for="gains-inv"><span data-i18n="gainsInv">Total capital gains this year</span> <span class="hint" data-i18n="gainsInvHint">— crypto, shares, funds disposed</span></label>
+          <div class="input-wrap"><span class="pre">£</span><input type="number" id="gains-inv" min="0" step="100" placeholder="20,000" inputmode="numeric" /></div>
+        </div>
+        <div class="field">
+          <label for="losses-inv"><span data-i18n="lossesInv">Capital losses this year</span> <span class="hint" data-i18n="lossesInvHint">— offsets gains before the £3,000 allowance</span></label>
+          <div class="input-wrap"><span class="pre">£</span><input type="number" id="losses-inv" min="0" step="100" placeholder="2,000" inputmode="numeric" /></div>
+        </div>
+        <div class="field">
+          <label for="other-inc-inv"><span data-i18n="otherIncInv">Your other income</span> <span class="hint" data-i18n="otherIncInvHint">— salary/trading profits, sets your CGT band</span></label>
+          <div class="input-wrap"><span class="pre">£</span><input type="number" id="other-inc-inv" min="0" step="100" placeholder="35,000" inputmode="numeric" /></div>
+        </div>
+        <div class="field">
+          <label for="paid-inv" data-i18n="paidInv">CGT already paid</label>
+          <div class="input-wrap"><span class="pre">£</span><input type="number" id="paid-inv" min="0" step="100" placeholder="0" inputmode="numeric" /></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESULTS -->
+    <section class="results">
+      <div class="panel panel-pad" id="results">
+        <div class="empty-state" id="emptyState" data-i18n="emptyState">Enter your figures to see your estimated tax and outstanding balance.</div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Tools & connections -->
+  <section class="tools">
+    <h2 class="tips-title" data-i18n="toolsTitle">Tools &amp; connections</h2>
+    <p class="tips-sub" data-i18n="toolsSub">The pension planner tracks your pots against the £60,000 annual allowance and estimates tax relief at your marginal rate. Live provider connections are on the roadmap — add your pots manually for now.</p>
+    <div class="tool-grid single">
+      <div class="card panel-pad">
+        <h3 data-i18n="pensionPlans">Your pension plans</h3>
+        <div class="pp-rows" id="pp-rows"></div>
+        <button type="button" class="exp-add" id="pp-add" data-i18n="addPension">+ Add pension</button>
+        <div class="pp-totals" id="pp-totals"></div>
+        <div class="pp-note" data-i18n="pensionNote">Add your pension pots manually to track them against the £60,000 annual allowance.</div>
+      </div>
+    </div>
+  </section>
+  <!-- VAT & reclaims -->
+  <section class="tools" id="vat-section">
+    <h2 class="tips-title" data-i18n="vatTitle">VAT &amp; reclaims</h2>
+    <p class="tips-sub" data-i18n="vatSub">Check whether you need to register, then work out the VAT you owe and how much you can claim back on purchases. Thresholds and rates are 2026/27.</p>
+    <div class="tool-grid">
+
+      <!-- Registration status -->
+      <div class="card panel-pad">
+        <h3 data-i18n="vatStatusTitle">Registration status</h3>
+        <div class="switch-row">
+          <div class="txt">
+            <b data-i18n="vatRegToggle">I'm VAT registered</b>
+            <span data-i18n="vatRegToggleSub">Turn on if HMRC has issued you a VAT registration number.</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="vat-registered" />
+            <span class="track"><span class="thumb"></span></span>
+          </label>
+        </div>
+        <div class="field" style="margin-top:10px">
+          <label for="vat-turnover"><span data-i18n="vatTurnoverLabel">Taxable turnover, last 12 months</span> <span class="hint" data-i18n="vatTurnoverHint">rolling total, excluding exempt sales</span></label>
+          <div class="input-wrap"><span class="pre">£</span><input type="number" id="vat-turnover" min="0" step="1000" placeholder="60,000" inputmode="numeric" /></div>
+        </div>
+        <button type="button" class="btn ghost" id="vat-use-income" data-i18n="vatUseIncome">Use my income figure</button>
+        <div class="pp-totals" id="vat-threshold-out"></div>
+      </div>
+
+      <!-- VAT calculator -->
+      <div class="card panel-pad">
+        <h3 data-i18n="vatCalcTitle">What you owe and what you can claim</h3>
+        <div class="field">
+          <label for="vat-scheme" data-i18n="vatSchemeLabel">VAT scheme</label>
+          <select id="vat-scheme">
+            <option value="standard" data-i18n="vatSchemeStandard">Standard (invoice) accounting</option>
+            <option value="cash" data-i18n="vatSchemeCash">Cash accounting</option>
+            <option value="flat" data-i18n="vatSchemeFlat">Flat Rate Scheme</option>
+          </select>
+        </div>
+
+        <!-- Standard / cash inputs -->
+        <div id="vat-standard-fields">
+          <div class="field">
+            <label for="vat-sales"><span data-i18n="vatSalesLabel">Your sales</span> <span class="hint" data-i18n="vatSalesHint">what you invoiced customers</span></label>
+            <div class="vat-inline">
+              <div class="input-wrap"><span class="pre">£</span><input type="number" id="vat-sales" min="0" step="500" placeholder="50,000" inputmode="numeric" /></div>
+              <select id="vat-sales-basis" data-i18n-aria="vatBasisAria" aria-label="Sales figure basis">
+                <option value="net" data-i18n="vatBasisNet">excludes VAT</option>
+                <option value="gross" data-i18n="vatBasisGross">includes VAT</option>
+              </select>
+              <select id="vat-sales-rate" data-i18n-aria="vatRateAria" aria-label="VAT rate on sales">
+                <option value="0.2" data-i18n="vatRate20">Standard 20%</option>
+                <option value="0.05" data-i18n="vatRate5">Reduced 5%</option>
+                <option value="0" data-i18n="vatRate0">Zero rated 0%</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="vat-purchases"><span data-i18n="vatPurchasesLabel">VAT-bearing purchases</span> <span class="hint" data-i18n="vatPurchasesHint">total you paid including VAT, business use only</span></label>
+            <div class="input-wrap"><span class="pre">£</span><input type="number" id="vat-purchases" min="0" step="500" placeholder="12,000" inputmode="numeric" /></div>
+          </div>
+        </div>
+
+        <!-- Flat rate inputs -->
+        <div id="vat-flat-fields" style="display:none">
+          <div class="field">
+            <label for="vat-sector"><span data-i18n="vatSectorLabel">Your trade sector</span> <span class="hint" data-i18n="vatSectorHint">HMRC sets the percentage for each sector</span></label>
+            <select id="vat-sector"></select>
+          </div>
+          <div class="field">
+            <label for="vat-flat-turnover"><span data-i18n="vatFlatTurnoverLabel">Flat rate turnover</span> <span class="hint" data-i18n="vatFlatTurnoverHint">your sales including the VAT you charged</span></label>
+            <div class="vat-inline">
+              <div class="input-wrap"><span class="pre">£</span><input type="number" id="vat-flat-turnover" min="0" step="500" placeholder="60,000" inputmode="numeric" /></div>
+              <select id="vat-flat-basis" data-i18n-aria="vatBasisAria" aria-label="Turnover figure basis">
+                <option value="gross" data-i18n="vatBasisGross">includes VAT</option>
+                <option value="net" data-i18n="vatBasisNet">excludes VAT</option>
+              </select>
+            </div>
+          </div>
+          <div class="switch-row">
+            <div class="txt">
+              <b data-i18n="vatFirstYear">First year of VAT registration</b>
+              <span data-i18n="vatFirstYearSub">Takes 1% off your flat rate until your first anniversary.</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="vat-first-year" />
+              <span class="track"><span class="thumb"></span></span>
+            </label>
+          </div>
+          <div class="switch-row">
+            <div class="txt">
+              <b data-i18n="vatLimitedCost">Limited cost business</b>
+              <span data-i18n="vatLimitedCostSub">Goods cost under 2% of turnover, or under £1,000 a year. Forces the 16.5% rate.</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="vat-limited-cost" />
+              <span class="track"><span class="thumb"></span></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="pp-totals" id="vat-calc-out"></div>
+        <div class="pp-note" id="vat-calc-note" data-i18n="vatDeadlineNote">VAT returns and payment are usually due one calendar month and 7 days after the end of each accounting period.</div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- Reminders & saved scenarios -->
+  <section class="tools">
+    <h2 class="tips-title" data-i18n="remindersTitle">Reminders &amp; saved scenarios</h2>
+    <p class="tips-sub" data-i18n="remindersSub">Key UK tax deadlines with optional reminders, plus save your figures to this device for later.</p>
+    <div class="tool-grid">
+      <div class="card panel-pad">
+        <h3 data-i18n="deadlinesTitle">Upcoming tax deadlines</h3>
+        <ul class="deadlines" id="deadlineList"></ul>
+        <div class="pp-note" data-i18n="deadlinesNote">Reminders use this device's local notifications — nothing is sent to a server.</div>
+      </div>
+      <div class="card panel-pad">
+        <h3 data-i18n="yourFigures">Your figures</h3>
+        <div class="save-row">
+          <button type="button" class="btn ghost" id="saveFigures" data-i18n="saveFiguresBtn">Save my figures</button>
+          <button type="button" class="btn ghost" id="loadFigures" data-i18n="loadFiguresBtn">Load saved figures</button>
+        </div>
+        <div class="pp-note" id="saveStatus" data-i18n="figuresStoredNote">Figures are stored only on this device.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Guidance & reliefs (reference material) -->
+  <section class="tips" id="guide-section">
+    <h2 class="tips-title" data-i18n="guideTitle">Guidance &amp; reliefs</h2>
+    <p class="tips-sub" data-i18n="guideSub">Reference material to read alongside the calculators above — reliefs worth claiming, and the rules on reclaiming VAT.</p>
+    <h3 class="guide-group" data-i18n="tipsTitle">Reduce your bill — legally</h3>
+    <div class="tip-cards" id="tipCards">
+      <article class="tip-card" id="tip-pension">
+        <div class="tip-icon">£</div>
+        <h3 data-i18n="tipPensionTitle">Pension contributions</h3>
+        <p id="tip-pension-body" class="tip-body" data-i18n="tipPensionBody">Pay into a personal pension to cut your taxable income. Contributions attract relief at your marginal rate, and keeping income under £100,000 preserves your full Personal Allowance.</p>
+        <div class="tip-note" data-i18n="tipPensionNote">Annual allowance £60,000 (tapers above £260,000 adjusted income).</div>
+      </article>
+      <article class="tip-card" id="tip-isa">
+        <div class="tip-icon">ISA</div>
+        <h3 data-i18n="tipIsaTitle">Shelter gains in an ISA</h3>
+        <p class="tip-body" data-i18n="tipIsaBody">Up to £20,000 a year in a Stocks &amp; Shares ISA grows free of income tax and Capital Gains Tax — dividends and disposals inside the wrapper never touch your £3,000 CGT allowance or your tax bands. Direct cryptoassets generally can’t be held in an ISA, so shelter eligible shares and funds instead.</p>
+        <div class="tip-note" data-i18n="tipIsaNote">“Bed &amp; ISA”: realise gains within your £3,000 allowance, then hold future growth inside an ISA — repurchases made inside an ISA fall outside the 30-day matching rules.</div>
+      </article>
+      <article class="tip-card" id="tip-crypto">
+        <div class="tip-icon">BTC</div>
+        <h3 data-i18n="tipCryptoTitle">Crypto &amp; CGT relief</h3>
+        <p class="tip-body" data-i18n="tipCryptoBody">HMRC taxes crypto as a chargeable asset (CGT, not income tax unless you’re trading). Offset losses against gains, use your £3,000 Annual Exempt Amount each year, and transfer assets to a spouse to double the allowance to £6,000 combined.</p>
+        <div class="tip-note" data-i18n="tipCryptoNote">Unused losses carry forward indefinitely — but you must claim them to HMRC (form SA108) within 4 years of the disposal; once claimed, they offset future gains.</div>
+      </article>
+    </div>
+    <h3 class="guide-group" data-i18n="guideVatGroup">Claiming VAT back</h3>
+    <div class="tip-cards">
+      <article class="tip-card">
+        <div class="tip-icon">✓</div>
+        <h3 data-i18n="vatCanTitle">What you can reclaim</h3>
+        <p class="tip-body" data-i18n="vatCanBody">Stock and materials, tools and equipment, software and subscriptions, professional fees, business travel and fuel for business mileage, and a fair share of home office costs if you work from home.</p>
+        <div class="tip-note" data-i18n="vatCanNote">Keep VAT invoices. You can also reclaim VAT on some pre-registration purchases: goods bought in the last 4 years that you still have, and services in the last 6 months.</div>
+      </article>
+      <article class="tip-card">
+        <div class="tip-icon">✕</div>
+        <h3 data-i18n="vatCantTitle">What you can't reclaim</h3>
+        <p class="tip-body" data-i18n="vatCantBody">Anything for personal use, client entertainment, most cars, and goods or services used for exempt sales. Items used partly privately must be apportioned.</p>
+        <div class="tip-note" data-i18n="vatCantNote">If a purchase is 60% business use, reclaim 60% of the VAT.</div>
+      </article>
+      <article class="tip-card">
+        <div class="tip-icon">%</div>
+        <h3 data-i18n="vatSchemesTitle">Choosing a scheme</h3>
+        <p class="tip-body" data-i18n="vatSchemesBody">Standard accounting counts VAT when you invoice. Cash accounting counts it when money moves, which helps if customers pay late — available up to £1.35 million turnover. The Flat Rate Scheme pays a fixed percentage of your gross turnover and skips most input VAT — you can join up to £150,000 and must leave above £230,000.</p>
+        <div class="tip-note" data-i18n="vatSchemesNote">This tool compares flat rate against standard accounting so you can see which costs less.</div>
+      </article>
+    </div>
+  </section>
+</main>
+
+<!-- Mock checkout removed for App Store version -->
+
+<footer class="site">
+  <div class="wrap">
+    <div class="srcs">
+      Rates &amp; rules: <a href="https://www.gov.uk/income-tax-rates" target="_blank" rel="noopener">GOV.UK — Income Tax rates</a> ·
+      <a href="https://www.gov.uk/self-employed-national-insurance-rates" target="_blank" rel="noopener">GOV.UK — Self-employed NIC</a> ·
+      <a href="https://www.gov.uk/government/publications/rates-and-allowances-corporation-tax/rates-and-allowances-corporation-tax" target="_blank" rel="noopener">GOV.UK — Corporation Tax rates</a> ·
+      <a href="https://www.legislation.gov.uk/ukpga/2026/11/part/1/crossheading/corporation-tax-charge-and-rates/enacted" target="_blank" rel="noopener">Finance Act 2026</a>.<br/>
+      Pay HMRC: <a href="https://www.gov.uk/pay-self-assessment-tax-bill" target="_blank" rel="noopener">Self Assessment</a> ·
+      <a href="https://www.gov.uk/pay-corporation-tax" target="_blank" rel="noopener">Corporation Tax</a>. TaxMate is an independent estimator and is not affiliated with HMRC.
+    </div>
+  </div>
+</footer>
+
+<script src="tax.js"></script>
+<script src="lang.js"></script>
+<script src="app.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').catch(function () {});
+    });
+  }
+</script>
+<script data-pplx-inline-edit>
+(function () {
+  if (window === window.top) return;
+
+  const allowedParentOrigins = ["https://www.perplexity.ai","https://perplexity.ai","https://testing.perplexity.ai","https://staging.perplexity.ai","https://*.preview.i.perplexity.ai","http://perplexity.localhost","http://localhost:1420","http://127.0.0.1:1420","http://localhost:3000","http://127.0.0.1:3000","http://localhost:5173","http://127.0.0.1:5173"];
+  const MAX_FONT_BYTES = 500 * 1024;
+  const MAX_TOTAL_FONT_BYTES = 2 * 1024 * 1024;
+  let scrollForwarding = false;
+  let scrollRaf = 0;
+  let trustedTopOrigin = null;
+
+  // Allow entries like "https://*.preview.i.perplexity.ai" — the wildcard
+  // matches a single DNS label (no dots), so "https://*.foo" cannot stretch
+  // across multiple labels.
+  function matchesAllowedOrigin(origin) {
+    if (!origin) return false;
+    for (const entry of allowedParentOrigins) {
+      if (!entry.includes("*")) {
+        if (entry === origin) return true;
+        continue;
+      }
+      const pattern = new RegExp(
+        "^" +
+          entry.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, "[^.]+") +
+          "$",
+      );
+      if (pattern.test(origin)) return true;
+    }
+    return false;
+  }
+
+  // Trust decision: when the sender is same-origin-visible (event.origin is a
+  // real origin like https://www.perplexity.ai) we trust event.origin directly.
+  // When event.origin is "null" (opaque broker srcdoc), we fall back to the
+  // broker's stamped `parentOrigin` to identify the top window. The fallback
+  // is claim-only — we rely on the browser's native `targetOrigin` enforcement
+  // on the response path (see postToTrustedTop) to ensure replies can't be
+  // delivered to anyone but the actual top window of that claimed origin.
+  function getTrustedParentOrigin(event) {
+    const forwardedParentOrigin =
+      typeof event.data.parentOrigin === "string" ? event.data.parentOrigin : null;
+    const parentOrigin = event.origin === "null" ? forwardedParentOrigin : event.origin;
+    return matchesAllowedOrigin(parentOrigin) ? parentOrigin : null;
+  }
+
+  // All responses go to window.top with targetOrigin = the allowlisted origin.
+  // An attacker that iframes us inside their own null-origin broker can claim
+  // any parentOrigin they like, but the browser will drop the reply whenever
+  // the real top's origin doesn't match — so the screenshot never leaves.
+  function postToTrustedTop(message) {
+    if (!trustedTopOrigin) return;
+    try {
+      window.top.postMessage(message, trustedTopOrigin);
+    } catch (_error) {}
+  }
+
+  function inlineAll(original, clone) {
+    if (original.nodeType !== 1 || clone.nodeType !== 1) return;
+
+    try {
+      const computedStyle = getComputedStyle(original);
+      // cssText on a computed style is the serialized declaration in modern
+      // Chromium/Safari — a single read beats enumerating ~400 longhand
+      // properties. Firefox returns "" here, so we fall back on empty.
+      const serialized = computedStyle.cssText;
+      if (serialized) {
+        clone.style.cssText = serialized;
+      } else {
+        const parts = new Array(computedStyle.length);
+        for (let index = 0; index < computedStyle.length; index += 1) {
+          const property = computedStyle[index];
+          parts[index] = `${property}:${computedStyle.getPropertyValue(property)};`;
+        }
+        clone.style.cssText = parts.join("");
+      }
+    } catch (_error) {}
+
+    const originalChildren = original.children;
+    const clonedChildren = clone.children;
+    for (
+      let index = 0;
+      index < originalChildren.length && index < clonedChildren.length;
+      index += 1
+    ) {
+      inlineAll(originalChildren[index], clonedChildren[index]);
+    }
+  }
+
+  function extractFontUrl(srcValue) {
+    const matches = [
+      ...srcValue.matchAll(
+        /url\(["']?([^"')]+)["']?\)(?:\s*format\(["']?([^"')]+)["']?\))?/gi,
+      ),
+    ];
+    if (matches.length === 0) return null;
+    const woff2 = matches.find((m) => m[2] && m[2].toLowerCase().includes("woff2"));
+    if (woff2) return woff2[1];
+    const woff = matches.find((m) => m[2] && m[2].toLowerCase().includes("woff"));
+    if (woff) return woff[1];
+    return matches[0][1];
+  }
+
+  // Cache resolved font URL -> data URI across captures. Fonts on a page
+  // essentially never change, and a batch run emits multiple captures back to
+  // back — without this we'd refetch + re-base64 every time.
+  const fontDataUriCache = new Map();
+  const SRC_DECLARATION_RE = /src\s*:\s*[^;}]+/i;
+
+  async function fetchAsDataUri(url) {
+    if (fontDataUriCache.has(url)) return fontDataUriCache.get(url);
+    let dataUri = null;
+    try {
+      const response = await fetch(url, { mode: "cors", credentials: "omit" });
+      if (response.ok) {
+        const blob = await response.blob();
+        if (blob.size <= MAX_FONT_BYTES) {
+          dataUri = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () =>
+              resolve(typeof reader.result === "string" ? reader.result : null);
+            reader.onerror = () => resolve(null);
+            reader.readAsDataURL(blob);
+          });
+        }
+      }
+    } catch (_error) {
+      dataUri = null;
+    }
+    fontDataUriCache.set(url, dataUri);
+    return dataUri;
+  }
+
+  function collectFontFaceRuleTexts() {
+    const rules = [];
+    for (const sheet of document.styleSheets) {
+      let cssRules;
+      try {
+        cssRules = sheet.cssRules;
+      } catch (_error) {
+        continue;
+      }
+      if (!cssRules) continue;
+      for (const rule of cssRules) {
+        const cssText = rule.cssText || "";
+        if (cssText.startsWith("@font-face")) rules.push(cssText);
+      }
+    }
+    return rules;
+  }
+
+  async function buildInlinedFontCss() {
+    const ruleTexts = collectFontFaceRuleTexts();
+    if (ruleTexts.length === 0) return null;
+
+    const resolved = ruleTexts.map((cssText) => {
+      if (!SRC_DECLARATION_RE.test(cssText)) return null;
+      const srcMatch = cssText.match(/src\s*:\s*([^;}]+)[;}]/i);
+      if (!srcMatch) return null;
+      const url = extractFontUrl(srcMatch[1]);
+      if (!url) return null;
+      try {
+        return { cssText, url: new URL(url, document.baseURI).href };
+      } catch (_error) {
+        return null;
+      }
+    });
+
+    const dataUris = await Promise.all(
+      resolved.map((entry) => (entry ? fetchAsDataUri(entry.url) : Promise.resolve(null))),
+    );
+
+    const inlined = [];
+    let totalBytes = 0;
+    for (let index = 0; index < resolved.length; index += 1) {
+      const entry = resolved[index];
+      const dataUri = dataUris[index];
+      if (!entry || !dataUri) continue;
+      const approxBytes = dataUri.length * 0.75;
+      if (totalBytes + approxBytes > MAX_TOTAL_FONT_BYTES) break;
+      totalBytes += approxBytes;
+      inlined.push(entry.cssText.replace(SRC_DECLARATION_RE, `src: url("${dataUri}")`));
+    }
+    return inlined.length > 0 ? inlined.join("\n") : null;
+  }
+
+  function stripExternal(clone) {
+    const images = clone.querySelectorAll("img");
+    for (let index = 0; index < images.length; index += 1) {
+      const src = images[index].getAttribute("src");
+      if (src && !src.startsWith("data:")) images[index].removeAttribute("src");
+    }
+
+    const elements = clone.querySelectorAll("*");
+    for (let index = 0; index < elements.length; index += 1) {
+      const style = elements[index].style.cssText;
+      if (style && style.includes("url(")) {
+        elements[index].style.cssText = style.replace(
+          /url\(["']?(?!data:)[^)"']*["']?\)/gi,
+          "none",
+        );
+      }
+    }
+  }
+
+  function emitScroll() {
+    scrollRaf = 0;
+    if (!scrollForwarding) return;
+    postToTrustedTop({
+      type: "INLINE_EDIT_SCROLL",
+      scrollX: window.scrollX,
+      scrollY: window.scrollY,
+    });
+  }
+
+  window.addEventListener(
+    "scroll",
+    function () {
+      if (!scrollForwarding || scrollRaf) return;
+      scrollRaf = requestAnimationFrame(emitScroll);
+    },
+    { passive: true, capture: true },
+  );
+
+  async function handleCaptureRequest(event) {
+    const requestId = event.data.requestId;
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    function postResult(dataUrl) {
+      postToTrustedTop({
+        type: "INLINE_EDIT_SCREENSHOT_RESULT",
+        requestId,
+        dataUrl,
+        scrollX,
+        scrollY,
+      });
+    }
+
+    try {
+      // Wait for any pending web fonts to resolve so both inline metrics and
+      // the @font-face inlining below see the same loaded faces.
+      if (document.fonts && document.fonts.ready) {
+        try {
+          await document.fonts.ready;
+        } catch (_error) {}
+      }
+
+      const clone = document.documentElement.cloneNode(true);
+      inlineAll(document.documentElement, clone);
+
+      const removedNodes = clone.querySelectorAll("script,link[rel=\"stylesheet\"],style");
+      for (let index = 0; index < removedNodes.length; index += 1) {
+        removedNodes[index].remove();
+      }
+
+      stripExternal(clone);
+
+      // Re-embed web fonts as data-URI @font-face rules so the SVG rasterizer
+      // can resolve them — external font URLs aren't fetched during
+      // foreignObject rendering, which would otherwise force a fallback face
+      // and change text metrics.
+      const inlinedFontCss = await buildInlinedFontCss();
+      if (inlinedFontCss) {
+        const styleEl = document.createElement("style");
+        styleEl.textContent = inlinedFontCss;
+        const head = clone.querySelector("head");
+        if (head) head.appendChild(styleEl);
+        else clone.insertBefore(styleEl, clone.firstChild);
+      }
+
+      const html = new XMLSerializer().serializeToString(clone);
+      const svg =
+        `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">` +
+        '<foreignObject width="100%" height="100%">' +
+        `<div xmlns="http://www.w3.org/1999/xhtml" style="width:${width}px;height:${height}px;overflow:hidden">` +
+        `<div style="position:relative;left:-${scrollX}px;top:-${scrollY}px">` +
+        html +
+        "</div></div></foreignObject></svg>";
+      const svgUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+      const image = new Image();
+      image.onload = function () {
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d").drawImage(image, 0, 0);
+        postResult(canvas.toDataURL("image/png"));
+      };
+      image.onerror = function () {
+        postResult(null);
+      };
+      image.src = svgUrl;
+    } catch (_error) {
+      postResult(null);
+    }
+  }
+
+  window.addEventListener("message", function (event) {
+    if (!event.data) return;
+    // Only accept messages from the direct parent frame. Blocks sibling /
+    // unrelated-window postMessage senders that could otherwise reach us.
+    if (event.source !== window.parent) return;
+
+    const trustedParentOrigin = getTrustedParentOrigin(event);
+    if (!trustedParentOrigin) return;
+    trustedTopOrigin = trustedParentOrigin;
+
+    if (event.data.type === "INLINE_EDIT_SCROLL_START") {
+      scrollForwarding = true;
+      emitScroll();
+      return;
+    }
+
+    if (event.data.type === "INLINE_EDIT_SCROLL_STOP") {
+      scrollForwarding = false;
+      if (scrollRaf) cancelAnimationFrame(scrollRaf);
+      scrollRaf = 0;
+      return;
+    }
+
+    if (event.data.type !== "INLINE_EDIT_CAPTURE_REQUEST") return;
+
+    handleCaptureRequest(event);
+  });
+})();
+
+
+</script></body>
+</html>
